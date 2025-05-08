@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center" data-aos="fade-up">
+    <h1 class="display-4 mb-4">Générateur de Cahier des Charges IA</h1>
+    <p class="lead mb-4">Créez des cahiers des charges professionnels en quelques minutes grâce à notre assistant IA</p>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-4" data-aos="fade-right" data-aos-delay="200">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <i class="bi bi-lightning-charge-fill display-4 text-primary mb-3"></i>
+                    <h3>Rapide</h3>
+                    <p>Générez un cahier des charges complet en quelques minutes</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <i class="bi bi-shield-check display-4 text-primary mb-3"></i>
+                    <h3>Professionnel</h3>
+                    <p>Des documents structurés et conformes aux standards</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4" data-aos="fade-left" data-aos-delay="600">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <i class="bi bi-gear-fill display-4 text-primary mb-3"></i>
+                    <h3>Personnalisable</h3>
+                    <p>Adaptez chaque section selon vos besoins</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not current_user.is_authenticated %}
+    <div class="mt-5" data-aos="fade-up" data-aos-delay="800">
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">Commencer maintenant</a>
+    </div>
+    {% else %}
+    <div class="mt-5" data-aos="fade-up" data-aos-delay="800">
+        <a href="{{ url_for('chatbot') }}" class="btn btn-primary btn-lg">Accéder au chatbot</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

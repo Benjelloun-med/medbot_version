@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card" data-aos="fade-up">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Assistant de Cahier des Charges</h3>
+            </div>
+            <div class="card-body">
+                <div class="chat-container mb-3" id="chatContainer">
+                    <div class="message bot-message" data-aos="fade-right">
+                        Bonjour ! Je suis votre assistant pour la création de cahiers des charges. Comment puis-je vous aider aujourd'hui ?
+                    </div>
+                </div>
+                
+                <form id="chatForm" class="mt-3">
+                    <div class="input-group">
+                        <input type="text" id="userInput" class="form-control" placeholder="Tapez votre message ici...">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('chatForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const userInput = document.getElementById('userInput');
+    const message = userInput.value.trim();
+    
+    if (message) {
+        // Ajouter le message de l'utilisateur
+        const chatContainer = document.getElementById('chatContainer');
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'message user-message';
+        userMessageDiv.textContent = message;
+        chatContainer.appendChild(userMessageDiv);
+        
+        // Vider l'input
+        userInput.value = '';
+        
+        // Faire défiler vers le bas
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        try {
+            // Envoyer la requête au serveur
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await response.json();
+            
+            // Ajouter la réponse du bot
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'message bot-message';
+            botMessageDiv.textContent = data.response;
+            chatContainer.appendChild(botMessageDiv);
+            
+            // Faire défiler vers le bas
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        } catch (error) {
+            console.error('Erreur:', error);
+            const errorMessageDiv = document.createElement('div');
+            errorMessageDiv.className = 'message bot-message text-danger';
+            errorMessageDiv.textContent = 'Désolé, une erreur est survenue. Veuillez réessayer.';
+            chatContainer.appendChild(errorMessageDiv);
+        }
+    }
+});
+</script>
+{% endblock %} 
