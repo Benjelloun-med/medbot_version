@@ -1,0 +1,34 @@
+Personnaliser les questions selon le contexte
+
+
+Élaguer : ne garde que les questions pertinentes pour le type de projet (éviter le superflu).
+
+
+2. Interroger les bonnes personnes
+Utilise les questions pour interviewer le demandeur métier ou les parties prenantes.
+
+Sois rigoureux : documente toutes les réponses sans interprétation personnelle.
+
+Astuce : envoie les questions par écrit avant un atelier, pour que les personnes aient le temps d’y réfléchir.
+
+3. Structurer les réponses dans un modèle de cahier des charges
+Intègre les réponses rubrique par rubrique dans un modèle clair (comme celui que je t’ai généré en Word).
+
+Vérifie la cohérence, les éventuelles contradictions ou zones floues.
+
+Les réponses pourraient ensuite être injectées automatiquement dans un modèle de cahier des charges.
+
+5. Faire valider et itérer
+Partage une version 1 du cahier des charges aux parties prenantes.
+
+Corrige, précise ou réécris les points faibles.
+
+Fais relire par un profil technique si le projet le nécessite (développeur, DSI, etc.)
+
+Souhaites-tu que je t’aide à créer :
+
+Un formulaire interactif à partir de la bibliothèque ?
+
+Un flux conversationnel type chatbot avec les questions ?
+
+Une version Excel prête à remplir et générer le cahier des charges automatiquemen

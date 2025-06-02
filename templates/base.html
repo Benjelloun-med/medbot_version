@@ -32,6 +32,7 @@
             color: white;
             padding: 2rem 0;
             margin-top: 3rem;
+            overflow-y: auto;
         }
         .social-links a {
             color: white;
@@ -83,6 +84,20 @@
     </nav>
 
     <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row">
+                    <div class="col-md-8 mx-auto">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
     </div>
 
@@ -100,7 +115,7 @@
                 <div class="col-md-6 text-center text-md-end">
                     <h5>Suivez-nous</h5>
                     <div class="social-links">
-                        <a href="https://www.linkedin.com/company/centrale-laitiere/posts/?feedView=all" target="_blank" title="LinkedIn">
+                        <a href="https://www.linkedin.com/in/mohamed-larbi-benjelloun-637427215/" target="_blank" title="LinkedIn">
                             <i class="bi bi-linkedin"></i>
                         </a>
                         <a href="https://github.com/Benjelloun-med" target="_blank" title="GitHub">

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4" data-aos="fade-right"
+     data-aos-offset="300"
+     data-aos-easing="ease-in-sine">
+
+    <h1>Tableau de Bord Administrateur</h1>
+    
+    <div class="mb-3">
+        <a href="{{ url_for('chatbot') }}" class="btn btn-success">
+            <i class="fas fa-robot"></i> Accéder au Chatbot
+        </a>
+        <a href="{{ url_for('admin_new_user') }}" class="btn btn-primary ms-2">
+            <i class="fas fa-plus"></i> Nouvel Utilisateur
+        </a>
+        <a href="{{ url_for('admin_documents') }}" class="btn btn-info ms-2">
+            <i class="fas fa-file-word"></i> Documents Word
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>login</th>
+                    <th>Admin</th>
+                    <th>statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.login }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                        <span class="badge bg-success">Oui</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Non</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}" id="status-badge-{{ user.id }}">
+                            {{ 'Actif' if user.is_active else 'Inactif' }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        {% if user.id != current_user.id %}
+                        <button class="btn btn-sm {% if user.is_active %}btn-danger{% else %}btn-success{% endif %} toggle-status" 
+                                data-user-id="{{ user.id }}"
+                                data-is-active="{{ user.is_active|tojson }}">
+                            <i class="fas {% if user.is_active %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                            {{ 'Désactiver' if user.is_active else 'Activer' }}
+                        </button>
+                        <form action="{{ url_for('admin_delete_user', user_id=user.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.toggle-status').forEach(button => {
+    button.addEventListener('click', async function() {
+        const userId = this.dataset.userId;
+        const isActive = JSON.parse(this.dataset.isActive);
+        
+        try {
+            const response = await fetch(`/admin/user/${userId}/toggle-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Mettre à jour le badge de statut
+                const statusBadge = document.getElementById(`status-badge-${userId}`);
+                statusBadge.textContent = data.is_active ? 'Actif' : 'Inactif';
+                statusBadge.className = `badge ${data.is_active ? 'bg-success' : 'bg-danger'}`;
+                
+                // Mettre à jour le bouton
+                this.dataset.isActive = data.is_active;
+                this.className = `btn btn-sm ${data.is_active ? 'btn-danger' : 'btn-success'} toggle-status`;
+                this.innerHTML = `<i class="fas ${data.is_active ? 'fa-user-slash' : 'fa-user-check'}"></i> ${data.is_active ? 'Désactiver' : 'Activer'}`;
+                
+                // Afficher un message de succès
+                alert(data.message);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Une erreur est survenue lors de la modification du statut.');
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -22,8 +22,20 @@
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+                <div class="mt-3" style="display: inline-block;">
+                    <button id="saveWordBtn" class="btn btn-success">
+                        <i class="bi bi-file-word"></i> Sauvegarder en Word
+                    </button>
+                </div>
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                <div class="mb-3" style="display: inline-block;">
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-warning">
+                        <i class="fas fa-arrow-left"></i> Retour à l'administration
+                    </a>
+                </div>
+                {% endif %}
+
+
     </div>
 </div>
 {% endblock %}
@@ -77,6 +89,41 @@ document.getElementById('chatForm').addEventListener('submit', async function(e)
             errorMessageDiv.textContent = 'Désolé, une erreur est survenue. Veuillez réessayer.';
             chatContainer.appendChild(errorMessageDiv);
         }
+    }
+});
+
+// Fonction pour sauvegarder en Word
+document.getElementById('saveWordBtn').addEventListener('click', async function() {
+    try {
+        const chatContainer = document.getElementById('chatContainer');
+        const messages = Array.from(chatContainer.getElementsByClassName('message'));
+        // On crée un tableau d'objets {content: ...} pour chaque message
+        const messagesArray = messages.map(msg => ({ content: msg.textContent }));
+
+        const response = await fetch('/api/save-word', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ messages: messagesArray })
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cahier_des_charges_${new Date().toISOString().slice(0,19).replace(/[:]/g, '-')}.docx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } else {
+            throw new Error('Erreur lors de la sauvegarde');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de la sauvegarde du document.');
     }
 });
 </script>

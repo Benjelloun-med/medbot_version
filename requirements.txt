@@ -1,9 +1,10 @@
-Flask==2.0.1
-Flask-Login==0.5.0
-Flask-SQLAlchemy==2.5.1
-python-dotenv==1.1.0
-authlib==1.5.2
-openai==1.76.0
-SQLAlchemy==1.4.23
-Werkzeug==2.0.1
-requests==2.32.3 
+Flask==2.0.1 # pour le framework web
+Flask-Login==0.5.0 # pour la gestion des utilisateurs
+Flask-SQLAlchemy==2.5.1 # pour la base de données
+python-dotenv==1.1.0 # pour charger les variables d'environnement
+openai==1.76.0 # pour l'API OpenAI
+SQLAlchemy==1.4.23 # pour lier la base de données
+Flask-Migrate==3.1.0 # pour les migrations de la base de données
+Werkzeug==2.0.1 #pour hackage de mot de passe
+requests==2.32.3 # pour les requêtes HTTP
+python-docx==0.8.11 #pour lire les fichier word
