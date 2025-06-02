@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4" data-aos="flip-left"
+data-aos-easing="ease-out-cubic"
+data-aos-duration="2000">
+
+    <h1>Nouvel Utilisateur</h1>
+    
+    <form method="POST" class="mt-4">
+        <div class="mb-3">
+            <label for="name" class="form-label">Nom et prenom</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="login" class="form-label">login</label>
+            <input type="login" class="form-control" id="login" name="login" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="password" class="form-label">Mot de passe</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin">
+            <label class="form-check-label" for="is_admin">Administrateur</label>
+        </div>
+        
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Créer l'utilisateur</button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 
