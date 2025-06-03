@@ -11,6 +11,8 @@ from functools import wraps
 from docx import Document
 from datetime import datetime
 import io
+import json
+import re
 load_dotenv()
 
 app = Flask(__name__)
@@ -95,6 +97,11 @@ class GeneratedDocument(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
 
+class ChatHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    messages = db.Column(db.Text, nullable=False)  # Stocke l'historique au format JSON
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -208,26 +215,52 @@ def load_cdc_content():
 @login_required
 def chat():
     data = request.json
-    user_message = data.get('message', '')
-    print("Message reçu:", user_message)  # Debug
-    
+    messages = data.get('messages', [])  # On attend une liste d'échanges
+    if not messages:
+        return jsonify({"error": "Aucun message"}), 400
+
     try:
         print("Tentative d'appel à OpenAI...")  # Debug
         cdc_content = load_cdc_content()
-        
-        # Appel à l'API OpenAI avec la nouvelle syntaxe
+        # Ajoute le prompt système au début de l'historique
+        full_messages = [
+            {"role": "system", "content": f"Vous êtes un assistant spécialisé dans la création de cahiers des charges. Votre rôle est de poser des questions un par un aux utilisateurs pour structurer et rédiger leurs cahiers des charges de manière professionnelle et l'envoyer sous forme texte. Sans répondre aux questions hors de ce contexte. Basez-vous sur le contenu suivant pour les questions : {cdc_content}"}
+        ] + messages
+
         response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": f"Vous êtes un assistant spécialisé dans la création de cahiers des charges. Votre rôle est de poser des questions un par un aux utilisateurs pour structurer et rédiger leurs cahiers des charges de manière professionnelle et l'envoyer sous forme word. Sans répondre aux questions hors de ce contexte. Basez-vous sur le contenu suivant pour les questions : {cdc_content}"},
-                {"role": "user", "content": user_message}
-            ],
+            model="gpt-4o",
+            messages=full_messages,
             max_tokens=500
         )
         print("Réponse OpenAI reçue")  # Debug
 
         bot_response = response.choices[0].message.content
         print("Réponse:", bot_response)  # Debug
+
+        # Ajoute la réponse du bot à l'historique
+        messages.append({"role": "assistant", "content": bot_response})
+        print("Messages à sauvegarder:", messages)  # Debug
+
+        try:
+            # Sauvegarde ou met à jour l'historique en base
+            chat_history = ChatHistory.query.filter_by(user_id=current_user.id).first()
+            print("Chat history existante:", chat_history)  # Debug
+            
+            if chat_history:
+                print("Mise à jour de l'historique existant")  # Debug
+                chat_history.messages = json.dumps(messages)
+            else:
+                print("Création d'un nouvel historique")  # Debug
+                chat_history = ChatHistory(user_id=current_user.id, messages=json.dumps(messages))
+                db.session.add(chat_history)
+            
+            db.session.commit()
+            print("Sauvegarde réussie dans la base de données")  # Debug
+        except Exception as db_error:
+            print("Erreur lors de la sauvegarde en base:", db_error)  # Debug
+            db.session.rollback()
+            raise db_error
+
         return jsonify({"response": bot_response})
     except Exception as e:
         print("Erreur:", e)
@@ -352,25 +385,42 @@ def save_word():
 
         last_message = messages[-1].get('content', '')
 
+        # Extraire le nom du cahier des charges
+        filename = "Cahier des Charges.docx"
+        
+        # Chercher le titre dans le format "Cahier des Charges pour..."
+        title_match = re.search(r'\*\*Cahier des Charges pour ([^*]+)\*\*', last_message)
+        if not title_match:
+            # Chercher le titre dans le format "nom du projet"
+            title_match = re.search(r'nom du projet[:\s]+([^\n]+)', last_message, re.IGNORECASE)
+        
+        if title_match:
+            filename = title_match.group(1).strip() + ".docx"
+            # Nettoyer le nom de fichier
+            filename = re.sub(r'[<>:"/\\|?*]', '', filename)  # Supprimer les caractères invalides
+            filename = filename[:100]  # Augmenter la limite pour les titres longs
+            # Remplacer les espaces multiples par un seul espace
+            filename = re.sub(r'\s+', ' ', filename)
+            # S'assurer que le nom commence par "Cahier des Charges pour"
+            if not filename.lower().startswith('cahier des charges pour'):
+                filename = "Cahier des Charges pour " + filename
+
         # Créer un document Word
         doc = Document()
         doc.add_heading('Cahier des Charges', 0)
         doc.add_paragraph(f'Date de création : {datetime.now().strftime("%d/%m/%Y")}')
-        doc.add_paragraph(last_message)  # Ajouter UNIQUEMENT le dernier message IA
+        doc.add_paragraph(last_message)
 
         # Sauvegarder le document dans un buffer
         file_stream = io.BytesIO()
         doc.save(file_stream)
         file_stream.seek(0)
 
-        # Générer un nom de fichier
-        filename = f'cahier_des_charges_{datetime.now().strftime("%Y%m%d_%H%M%S")}.docx'
-
-        # Sauvegarder uniquement le dernier message dans la base de données
+        # Sauvegarder le document dans la base de données
         document_record = GeneratedDocument(
             filename=filename,
             user_id=current_user.id,
-            content=last_message  # Sauvegarde du dernier message seulement
+            content=last_message
         )
         db.session.add(document_record)
         db.session.commit()
@@ -415,7 +465,51 @@ def admin_download_document(doc_id):
         download_name=document.filename
     )
 
+@app.route('/api/chat/history', methods=['GET', 'DELETE'])
+@login_required
+def chat_history():
+    print("Requête reçue pour /api/chat/history") # Debug
+    if request.method == 'GET':
+        print("Méthode GET détectée pour /api/chat/history") # Debug
+        try:
+            chat_history = ChatHistory.query.filter_by(user_id=current_user.id).first()
+            print("Historique récupéré de la base:", chat_history) # Debug
+            if chat_history:
+                messages = json.loads(chat_history.messages)
+                print("Historique JSON parsé avec succès") # Debug
+                return jsonify({"messages": messages})
+            else:
+                print("Aucun historique trouvé pour l'utilisateur") # Debug
+                return jsonify({"messages": []})
+        except Exception as e:
+            print("Erreur lors du chargement de l'historique:", e) # Debug
+            return jsonify({"error": "Erreur lors du chargement de l'historique."}), 500 # Retourne une erreur plus détaillée si besoin
+
+    elif request.method == 'DELETE':
+        print("Méthode DELETE détectée pour /api/chat/history") # Debug
+        try:
+            chat_history = ChatHistory.query.filter_by(user_id=current_user.id).first()
+            if chat_history:
+                db.session.delete(chat_history)
+                db.session.commit()
+                print("Historique supprimé avec succès") # Debug
+            else:
+                print("Aucun historique à supprimer pour l'utilisateur") # Debug
+            return jsonify({"success": True})
+        except Exception as e:
+            print("Erreur lors de la suppression de l'historique:", e) # Debug
+            return jsonify({"error": "Erreur lors de la suppression de l'historique."}), 500 # Retourne une erreur plus détaillée si besoin
+
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        try:
+            # Vérifier si la table chat_history existe
+            if not db.engine.dialect.has_table(db.engine, 'chat_history'):
+                print("Création de la table chat_history...")
+                db.create_all()
+                print("Table chat_history créée avec succès")
+            else:
+                print("La table chat_history existe déjà")
+        except Exception as e:
+            print("Erreur lors de la vérification/création de la table:", e)
     app.run(debug=True) 

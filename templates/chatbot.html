@@ -26,6 +26,9 @@
                     <button id="saveWordBtn" class="btn btn-success">
                         <i class="bi bi-file-word"></i> Sauvegarder en Word
                     </button>
+                    <button id="clearChatBtn" class="btn btn-secondary ms-2">
+                        <i class="bi bi-chat-dots"></i> Nouveau chat
+                    </button>
                 </div>
                 {% if current_user.is_authenticated and current_user.is_admin %}
                 <div class="mb-3" style="display: inline-block;">
@@ -42,46 +45,80 @@
 
 {% block scripts %}
 <script>
+let messages = [];
+
+// Charger l'historique depuis le serveur au démarrage
+window.addEventListener('DOMContentLoaded', async () => {
+    const chatContainer = document.getElementById('chatContainer');
+    try {
+        const response = await fetch('/api/chat/history');
+        const data = await response.json();
+        messages = data.messages || [];
+        chatContainer.innerHTML = '';
+        if (messages.length > 0) {
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = 'message ' + (msg.role === 'user' ? 'user-message' : 'bot-message');
+                div.textContent = msg.content;
+                chatContainer.appendChild(div);
+            });
+        } else {
+            const welcomeDiv = document.createElement('div');
+            welcomeDiv.className = 'message bot-message';
+            welcomeDiv.textContent = "Bonjour ! Je suis votre assistant pour la création de cahiers des charges. Comment puis-je vous aider aujourd'hui ?";
+            chatContainer.appendChild(welcomeDiv);
+        }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    } catch (error) {
+        chatContainer.innerHTML = '';
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'message bot-message text-danger';
+        errorDiv.textContent = "Erreur lors du chargement de l'historique.";
+        chatContainer.appendChild(errorDiv);
+    }
+});
+
+// Gestion de l'envoi du formulaire
 document.getElementById('chatForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
+
     const userInput = document.getElementById('userInput');
     const message = userInput.value.trim();
-    
+
     if (message) {
-        // Ajouter le message de l'utilisateur
+        // Ajoute le message utilisateur à l'historique
+        messages.push({ role: "user", content: message });
+
+        // Affiche le message utilisateur
         const chatContainer = document.getElementById('chatContainer');
         const userMessageDiv = document.createElement('div');
         userMessageDiv.className = 'message user-message';
         userMessageDiv.textContent = message;
         chatContainer.appendChild(userMessageDiv);
-        
-        // Vider l'input
+
         userInput.value = '';
-        
-        // Faire défiler vers le bas
         chatContainer.scrollTop = chatContainer.scrollHeight;
-        
+
         try {
-            // Envoyer la requête au serveur
+            // Envoie tout l'historique au backend
             const response = await fetch('/api/chat', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: messages })
             });
-            
+
             const data = await response.json();
-            
-            // Ajouter la réponse du bot
-            const botMessageDiv = document.createElement('div');
-            botMessageDiv.className = 'message bot-message';
-            botMessageDiv.textContent = data.response;
-            chatContainer.appendChild(botMessageDiv);
-            
-            // Faire défiler vers le bas
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Ajoute la réponse du bot à l'historique
+            if (data.response) {
+                messages.push({ role: "assistant", content: data.response });
+
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'message bot-message';
+                botMessageDiv.textContent = data.response;
+                chatContainer.appendChild(botMessageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
         } catch (error) {
             console.error('Erreur:', error);
             const errorMessageDiv = document.createElement('div');
@@ -96,9 +133,9 @@ document.getElementById('chatForm').addEventListener('submit', async function(e)
 document.getElementById('saveWordBtn').addEventListener('click', async function() {
     try {
         const chatContainer = document.getElementById('chatContainer');
-        const messages = Array.from(chatContainer.getElementsByClassName('message'));
+        const messagesDivs = Array.from(chatContainer.getElementsByClassName('message'));
         // On crée un tableau d'objets {content: ...} pour chaque message
-        const messagesArray = messages.map(msg => ({ content: msg.textContent }));
+        const messagesArray = messagesDivs.map(msg => ({ content: msg.textContent }));
 
         const response = await fetch('/api/save-word', {
             method: 'POST',
@@ -124,6 +161,30 @@ document.getElementById('saveWordBtn').addEventListener('click', async function(
     } catch (error) {
         console.error('Erreur:', error);
         alert('Une erreur est survenue lors de la sauvegarde du document.');
+    }
+});
+
+// Fonction pour réinitialiser l'historique du chat côté serveur
+document.getElementById('clearChatBtn').addEventListener('click', async function() {
+    if (confirm('Voulez-vous vraiment effacer l\'historique du chat ?')) {
+        try {
+            const response = await fetch('/api/chat/history', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (response.ok) {
+                messages = [];
+                const chatContainer = document.getElementById('chatContainer');
+                chatContainer.innerHTML = '';
+                // Message d'accueil par défaut
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'message bot-message';
+                welcomeDiv.textContent = "Bonjour ! Je suis votre assistant pour la création de cahiers des charges. Comment puis-je vous aider aujourd'hui ?";
+                chatContainer.appendChild(welcomeDiv);
+            }
+        } catch (error) {
+            alert('Erreur lors de la suppression de l\'historique.');
+        }
     }
 });
 </script>
