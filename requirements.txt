@@ -8,3 +8,6 @@ Flask-Migrate==3.1.0 # pour les migrations de la base de données
 Werkzeug==2.0.1 #pour hackage de mot de passe
 requests==2.32.3 # pour les requêtes HTTP
 python-docx==0.8.11 #pour lire les fichier word
+deepeval==0.1.1 # pour les tests de l'IA
+pytest>=7.0.0 # pour les tests
+pytest-flask>=1.2.0 # pour les tests

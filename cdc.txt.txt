@@ -1,34 +1,95 @@
 Personnaliser les questions selon le contexte
-
-
+concentrer sur la réponse directe à la question
 Élaguer : ne garde que les questions pertinentes pour le type de projet (éviter le superflu).
-
-
-2. Interroger les bonnes personnes
+Interroger les bonnes personnes
 Utilise les questions pour interviewer le demandeur métier ou les parties prenantes.
-
 Sois rigoureux : documente toutes les réponses sans interprétation personnelle.
-
 Astuce : envoie les questions par écrit avant un atelier, pour que les personnes aient le temps d’y réfléchir.
-
-3. Structurer les réponses dans un modèle de cahier des charges
+Structurer les réponses dans un modèle de cahier des charges
 Intègre les réponses rubrique par rubrique dans un modèle clair (comme celui que je t’ai généré en Word).
-
 Vérifie la cohérence, les éventuelles contradictions ou zones floues.
-
 Les réponses pourraient ensuite être injectées automatiquement dans un modèle de cahier des charges.
-
-5. Faire valider et itérer
+Faire valider et itérer
 Partage une version 1 du cahier des charges aux parties prenantes.
-
 Corrige, précise ou réécris les points faibles.
-
 Fais relire par un profil technique si le projet le nécessite (développeur, DSI, etc.)
-
 Souhaites-tu que je t’aide à créer :
-
 Un formulaire interactif à partir de la bibliothèque ?
-
 Un flux conversationnel type chatbot avec les questions ?
-
 Une version Excel prête à remplir et générer le cahier des charges automatiquemen
+
+
+Contexte du projet
+Quel est le nom ou le titre du projet ?
+
+Qui est à l’initiative du projet ? (département, personne)
+
+Quels sont les enjeux ou problématiques à résoudre ?
+
+Y a-t-il un contexte particulier ou un événement déclencheur du projet ?
+
+2. Objectifs du projet
+Quels sont les objectifs principaux du projet ?
+
+Qu’espérez-vous obtenir à la fin du projet ?
+
+Existe-t-il des KPIs ou des indicateurs de succès attendus ?
+
+3. Périmètre du projet
+Quelles sont les activités incluses dans le projet ?
+
+Y a-t-il des éléments explicitement exclus du périmètre ?
+
+Le projet concerne-t-il une équipe, un service, une région ?
+
+4. Données, contenus ou ressources nécessaires
+Quelles sources de données, documents ou outils seront utilisés ?
+
+Faut-il accéder à des bases, API, systèmes internes ?
+
+Des données sensibles ou personnelles sont-elles concernées ?
+
+5. Contraintes
+Quelles sont les contraintes techniques ou fonctionnelles connues ?
+
+Y a-t-il des délais à respecter ?
+
+Des normes, réglementations ou règles internes à suivre ?
+
+6. Livrables attendus
+Quel(s) type(s) de livrables attendez-vous ? (rapport, dashboard, appli…)
+
+Quel format ou support est requis ? (PDF, Power BI, Word, Excel, interface web…)
+
+À quelle fréquence ces livrables doivent-ils être mis à jour ?
+
+7. Planning / Jalons
+Quelle est la date de début souhaitée ?
+
+Y a-t-il des étapes clés ou des livrables intermédiaires ?
+
+Quelle est la date de fin attendue ?
+
+8. Parties prenantes
+Qui sont les interlocuteurs clés ?
+
+Qui valide les livrables ?
+
+Qui est responsable du suivi du projet ?
+
+et baser sur se sommaire si le projet est un application
+
+Sommaire:
+nom du projet :
+Interface de l’application .
+Authentification de l’utilisateur.
+Nouvel écran en Back Office :
+Introduction :
+Sortie site.
+tourne
+entre site 
+module inventaire
+ Nouvel écran en Back Office :
+ Route Trace Control (RTC)
+Inventaire Bacs 
+Descriptions :
